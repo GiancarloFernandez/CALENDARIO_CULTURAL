@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario Cultural</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #2B1B3D;
+    --paper: #EFE6D8;
+    --paper-dim: #E4D9C6;
+    --marigold: #E8A33D;
+    --teal: #1F6F6B;
+    --clay: #B5482F;
+    --text: #211A17;
+    --text-soft: #6B5F52;
+    --line: rgba(33, 26, 23, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: 'Work Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  header { margin-bottom: 32px; }
+
+  .kicker {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--teal);
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(36px, 7vw, 52px);
+    line-height: 1.02;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+
+  .subline {
+    font-size: 16px;
+    color: var(--text-soft);
+    max-width: 46ch;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .month-strip {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 40px 0 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .month-name {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .count { font-size: 14px; color: var(--text-soft); }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .filter {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    font-family: 'Work Sans', sans-serif;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .filter:hover { border-color: var(--ink); }
+
+  .filter.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+
+  .list { margin-top: 12px; }
+
+  .event {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 18px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+  }
+
+  .event:first-child { border-top: 1px solid var(--line); }
+
+  .date-block {
+    text-align: center;
+    padding-top: 2px;
+  }
+
+  .day-num {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .day-abbr {
+    font-size: 11px;
+    color: var(--text-soft);
+    letter-spacing: 0.03em;
+    margin-top: 2px;
+  }
+
+  .event-body { min-width: 0; }
+
+  .event-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .event-title {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--text);
+  }
+
+  .tag {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    margin-top: 3px;
+  }
+
+  .tag-Música { background: rgba(31,111,107,0.15); color: var(--teal); }
+  .tag-Danza { background: rgba(232,163,61,0.2); color: #96631a; }
+  .tag-Teatro { background: rgba(181,72,47,0.15); color: var(--clay); }
+  .tag-Exposición { background: rgba(43,27,61,0.1); color: var(--ink); }
+  .tag-Taller { background: rgba(31,111,107,0.15); color: var(--teal); }
+
+  .meta {
+    font-size: 13.5px;
+    color: var(--text-soft);
+    margin-top: 4px;
+  }
+
+  .desc {
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--text);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.25s ease;
+  }
+
+  .event.open .desc {
+    max-height: 200px;
+    opacity: 1;
+    margin-top: 12px;
+  }
+
+  .empty {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 14px;
+  }
+
+  .source-note {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  .source-note code {
+    background: var(--paper-dim);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="kicker">Puno · Agenda pública</p>
+      <h1>Calendario Cultural</h1>
+      <p class="subline">Música, danza, teatro y talleres de la ciudad, actualizados desde una hoja de cálculo compartida.</p>
+    </header>
+
+    <div class="month-strip">
+      <span class="month-name">Septiembre 2026</span>
+      <span class="count" id="count">— eventos</span>
+    </div>
+
+    <div class="filters" id="filters"></div>
+
+    <div class="list" id="list"></div>
+
+    <p class="source-note">
+      Esta vista lee sus datos de una hoja de Google Sheets publicada como CSV.
+      Si la URL configurada no responde, se muestran datos de ejemplo automáticamente.
+      Configura tu propia hoja reemplazando <code>SHEET_CSV_URL</code> en el código.
+    </p>
+  </div>
+
+<script>
+  // ---------------------------------------------------------------
+  // CONFIGURACIÓN: reemplaza esto con la URL "publicar en la web"
+  // de tu Google Sheet exportada como CSV. Formato típico:
+  // https://docs.google.com/spreadsheets/d/e/TU_ID/pub?output=csv
+  // ---------------------------------------------------------------
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1QdjwUWaXrrVm07R2Rvcbz8zte7bC_BEOjGE0NOXpyHA/edit?gid=0#gid=0";
+
+  // Datos de ejemplo — misma forma que tendrían las filas del Sheet
+  const MOCK_DATA = [
+    { fecha: "2026-09-03", dia_abbr: "JUE", titulo: "Concierto de música andina", lugar: "Teatro Municipal · 19:00", categoria: "Música", desc: "Ensamble de sikuris y charango interpretando repertorio tradicional del altiplano, con invitados de comunidades locales." },
+    { fecha: "2026-09-05", dia_abbr: "SÁB", titulo: "Feria de artesanía textil", lugar: "Plaza de Armas · 09:00–18:00", categoria: "Taller", desc: "Tejedoras de la región muestran técnicas de telar de cintura. Talleres abiertos cada hora para todo público." },
+    { fecha: "2026-09-08", dia_abbr: "MAR", titulo: "Sikuris del Titicaca", lugar: "Casa de la Cultura · 20:00", categoria: "Danza", desc: "Presentación de danza ritual acompañada de banda de bronces, con recorrido histórico previo a cargo de un antropólogo local." },
+    { fecha: "2026-09-12", dia_abbr: "SÁB", titulo: "Exposición: Textiles del Altiplano", lugar: "Museo Regional · todo el día", categoria: "Exposición", desc: "Muestra permanente ampliada con piezas de colección privada, incluyendo mantos ceremoniales del siglo XIX." },
+    { fecha: "2026-09-15", dia_abbr: "MAR", titulo: "Retablo ayacuchano, taller práctico", lugar: "Centro Cultural · 16:00", categoria: "Taller", desc: "Introducción a la técnica del retablo con materiales incluidos. Cupos limitados, inscripción previa recomendada." },
+    { fecha: "2026-09-19", dia_abbr: "SÁB", titulo: "Obra: Los hijos del lago", lugar: "Teatro Municipal · 19:30", categoria: "Teatro", desc: "Puesta en escena de una compañía local sobre las leyendas del Titicaca, con música en vivo." },
+    { fecha: "2026-09-24", dia_abbr: "JUE", titulo: "Noche de morenada", lugar: "Explanada del Coliseo · 20:00", categoria: "Danza", desc: "Ensayo abierto de comparsas de cara a la próxima festividad, con participación libre del público." },
+    { fecha: "2026-09-27", dia_abbr: "DOM", titulo: "Feria del libro regional", lugar: "Parque Pino · 10:00–19:00", categoria: "Exposición", desc: "Editoriales locales, presentación de autores puneños y espacio infantil de lectura." }
+  ];
+
+  const CATEGORIES = ["Todos", "Música", "Danza", "Teatro", "Exposición", "Taller"];
+  let activeFilter = "Todos";
+  let events = [];
+
+  function parseCSV(text) {
+    const lines = text.trim().split("\n");
+    const headers = lines[0].split(",").map(h => h.trim());
+    return lines.slice(1).map(line => {
+      const cells = line.split(",").map(c => c.trim().replace(/^"|"$/g, ""));
+      const row = {};
+      headers.forEach((h, i) => row[h] = cells[i] || "");
+      return row;
+    });
+  }
+
+  async function loadEvents() {
+    if (SHEET_CSV_URL) {
+      try {
+        const res = await fetch(SHEET_CSV_URL);
+        if (!res.ok) throw new Error("respuesta no válida");
+        const csv = await res.text();
+        events = parseCSV(csv);
+        return;
+      } catch (err) {
+        console.warn("No se pudo cargar el Sheet, usando datos de ejemplo:", err);
+      }
+    }
+    events = MOCK_DATA;
+  }
+
+  function dayNum(fecha) {
+    return parseInt(fecha.split("-")[2], 10);
+  }
+
+  function renderFilters() {
+    const el = document.getElementById("filters");
+    el.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement("button");
+      btn.className = "filter" + (cat === activeFilter ? " active" : "");
+      btn.textContent = cat;
+      btn.onclick = () => { activeFilter = cat; renderFilters(); renderList(); };
+      el.appendChild(btn);
+    });
+  }
+
+  function renderList() {
+    const list = document.getElementById("list");
+    const filtered = activeFilter === "Todos" ? events : events.filter(e => e.categoria === activeFilter);
+    document.getElementById("count").textContent = filtered.length + (filtered.length === 1 ? " evento" : " eventos");
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty">No hay eventos en esta categoría por ahora.</div>';
+      return;
+    }
+
+    list.innerHTML = "";
+    filtered.forEach((e, i) => {
+      const row = document.createElement("div");
+      row.className = "event";
+      row.innerHTML = `
+        <div class="date-block">
+          <div class="day-num">${dayNum(e.fecha)}</div>
+          <div class="day-abbr">${e.dia_abbr}</div>
+        </div>
+        <div class="event-body">
+          <div class="event-top">
+            <p class="event-title">${e.titulo}</p>
+            <span class="tag tag-${e.categoria}">${e.categoria}</span>
+          </div>
+          <div class="meta">${e.lugar}</div>
+          <div class="desc">${e.desc}</div>
+        </div>
+      `;
+      row.onclick = () => row.classList.toggle("open");
+      list.appendChild(row);
+    });
+  }
+
+  loadEvents().then(() => {
+    renderFilters();
+    renderList();
+  });
+</script>
+</body>
+</html>
