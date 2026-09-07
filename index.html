@@ -73,6 +73,7 @@
     font-size: 22px;
     font-weight: 600;
     color: var(--ink);
+    text-transform: capitalize;
   }
 
   .count { font-size: 14px; color: var(--text-soft); }
@@ -197,22 +198,6 @@
     color: var(--text-soft);
     font-size: 14px;
   }
-
-  .source-note {
-    margin-top: 48px;
-    padding-top: 20px;
-    border-top: 1px solid var(--line);
-    font-size: 12.5px;
-    color: var(--text-soft);
-    line-height: 1.6;
-  }
-
-  .source-note code {
-    background: var(--paper-dim);
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-  }
 </style>
 </head>
 <body>
@@ -220,46 +205,25 @@
     <header>
       <p class="kicker">Puno · Agenda pública</p>
       <h1>Calendario Cultural</h1>
-      <p class="subline">Música, danza, teatro y talleres de la ciudad, actualizados desde una hoja de cálculo compartida.</p>
+      <p class="subline">Música, danza, teatro y talleres de la Casa de la Cultura.</p>
     </header>
 
     <div class="month-strip">
-      <span class="month-name">Septiembre 2026</span>
+      <span class="month-name" id="monthName"></span>
       <span class="count" id="count">— eventos</span>
     </div>
 
     <div class="filters" id="filters"></div>
 
     <div class="list" id="list"></div>
-
-    <p class="source-note">
-      Esta vista lee sus datos de una hoja de Google Sheets publicada como CSV.
-      Si la URL configurada no responde, se muestran datos de ejemplo automáticamente.
-      Configura tu propia hoja reemplazando <code>SHEET_CSV_URL</code> en el código.
-    </p>
   </div>
 
 <script>
-  // ---------------------------------------------------------------
-  // CONFIGURACIÓN: reemplaza esto con la URL "publicar en la web"
-  // de tu Google Sheet exportada como CSV. Formato típico:
-  // https://docs.google.com/spreadsheets/d/e/TU_ID/pub?output=csv
-  // ---------------------------------------------------------------
   const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNpG1_4Co2oUBVF79P9v_XOOtC2R0quRXFr0HyuhRdq276VLtKCbhW5kAnAuylzCmzgg0_K-2kggNx/pub?gid=457408969&single=true&output=csv";
 
-  // Datos de ejemplo — misma forma que tendrían las filas del Sheet
-  const MOCK_DATA = [
-    { fecha: "2026-09-03", dia_abbr: "JUE", titulo: "Concierto de música andina", lugar: "Teatro Municipal · 19:00", categoria: "Música", desc: "Ensamble de sikuris y charango interpretando repertorio tradicional del altiplano, con invitados de comunidades locales." },
-    { fecha: "2026-09-05", dia_abbr: "SÁB", titulo: "Feria de artesanía textil", lugar: "Plaza de Armas · 09:00–18:00", categoria: "Taller", desc: "Tejedoras de la región muestran técnicas de telar de cintura. Talleres abiertos cada hora para todo público." },
-    { fecha: "2026-09-08", dia_abbr: "MAR", titulo: "Sikuris del Titicaca", lugar: "Casa de la Cultura · 20:00", categoria: "Danza", desc: "Presentación de danza ritual acompañada de banda de bronces, con recorrido histórico previo a cargo de un antropólogo local." },
-    { fecha: "2026-09-12", dia_abbr: "SÁB", titulo: "Exposición: Textiles del Altiplano", lugar: "Museo Regional · todo el día", categoria: "Exposición", desc: "Muestra permanente ampliada con piezas de colección privada, incluyendo mantos ceremoniales del siglo XIX." },
-    { fecha: "2026-09-15", dia_abbr: "MAR", titulo: "Retablo ayacuchano, taller práctico", lugar: "Centro Cultural · 16:00", categoria: "Taller", desc: "Introducción a la técnica del retablo con materiales incluidos. Cupos limitados, inscripción previa recomendada." },
-    { fecha: "2026-09-19", dia_abbr: "SÁB", titulo: "Obra: Los hijos del lago", lugar: "Teatro Municipal · 19:30", categoria: "Teatro", desc: "Puesta en escena de una compañía local sobre las leyendas del Titicaca, con música en vivo." },
-    { fecha: "2026-09-24", dia_abbr: "JUE", titulo: "Noche de morenada", lugar: "Explanada del Coliseo · 20:00", categoria: "Danza", desc: "Ensayo abierto de comparsas de cara a la próxima festividad, con participación libre del público." },
-    { fecha: "2026-09-27", dia_abbr: "DOM", titulo: "Feria del libro regional", lugar: "Parque Pino · 10:00–19:00", categoria: "Exposición", desc: "Editoriales locales, presentación de autores puneños y espacio infantil de lectura." }
-  ];
-
   const CATEGORIES = ["Todos", "Música", "Danza", "Teatro", "Exposición", "Taller"];
+  const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
   let activeFilter = "Todos";
   let events = [];
 
@@ -275,22 +239,19 @@
   }
 
   async function loadEvents() {
-    if (SHEET_CSV_URL) {
-      try {
-        const res = await fetch(SHEET_CSV_URL);
-        if (!res.ok) throw new Error("respuesta no válida");
-        const csv = await res.text();
-        events = parseCSV(csv);
-        return;
-      } catch (err) {
-        console.warn("No se pudo cargar el Sheet, usando datos de ejemplo:", err);
-      }
-    }
-    events = MOCK_DATA;
+    const res = await fetch(SHEET_CSV_URL);
+    if (!res.ok) throw new Error("respuesta no válida");
+    const csv = await res.text();
+    events = parseCSV(csv);
   }
 
   function dayNum(fecha) {
     return parseInt(fecha.split("-")[2], 10);
+  }
+
+  function renderMonthName() {
+    const now = new Date();
+    document.getElementById("monthName").textContent = `${MESES[now.getMonth()]} ${now.getFullYear()}`;
   }
 
   function renderFilters() {
@@ -316,7 +277,7 @@
     }
 
     list.innerHTML = "";
-    filtered.forEach((e, i) => {
+    filtered.forEach(e => {
       const row = document.createElement("div");
       row.className = "event";
       row.innerHTML = `
@@ -338,10 +299,15 @@
     });
   }
 
-  loadEvents().then(() => {
-    renderFilters();
-    renderList();
-  });
+  renderMonthName();
+  loadEvents()
+    .then(() => {
+      renderFilters();
+      renderList();
+    })
+    .catch(() => {
+      document.getElementById("list").innerHTML = '<div class="empty">No se pudieron cargar los eventos. Intenta de nuevo más tarde.</div>';
+    });
 </script>
 </body>
 </html>
